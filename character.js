@@ -58,9 +58,14 @@ export class Character {
             this.modelWrapper.add(loadedModel);
             // Reset wrapper rotation
             this.modelWrapper.rotation.y = 0;
+            this.modelWrapper.scale.set(1, 1, 1);
             if (document.getElementById('rotation-slider')) {
                 document.getElementById('rotation-slider').value = 0;
                 document.getElementById('rotation-value').textContent = 0;
+            }
+            if (document.getElementById('scale-slider')) {
+                document.getElementById('scale-slider').value = 1;
+                document.getElementById('scale-value').textContent = '1.0';
             }
 
 
@@ -78,6 +83,10 @@ export class Character {
 
     setInitialRotation(radians) {
         this.modelWrapper.rotation.y = radians;
+    }
+
+    setScale(scale) {
+        this.modelWrapper.scale.set(scale, scale, scale);
     }
 
     update(deltaTime, moveState) {

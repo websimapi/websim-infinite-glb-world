@@ -27,6 +27,7 @@ class App {
         
         this._setupFileUpload();
         this._setupRotationControls();
+        this._setupScaleControls();
 
         window.addEventListener('resize', this._onWindowResize.bind(this));
         this.renderer.setAnimationLoop(this._animate.bind(this));
@@ -60,6 +61,7 @@ class App {
                 this.character.loadModel(url, () => {
                     URL.revokeObjectURL(url); // Clean up
                     document.getElementById('rotation-controls').style.display = 'block';
+                    document.getElementById('scale-controls').style.display = 'block';
                 });
             }
         });
@@ -74,6 +76,17 @@ class App {
             valueSpan.textContent = degrees;
             const radians = THREE.MathUtils.degToRad(degrees);
             this.character.setInitialRotation(radians);
+        });
+    }
+
+    _setupScaleControls() {
+        const slider = document.getElementById('scale-slider');
+        const valueSpan = document.getElementById('scale-value');
+
+        slider.addEventListener('input', (event) => {
+            const scale = parseFloat(event.target.value);
+            valueSpan.textContent = scale.toFixed(1);
+            this.character.setScale(scale);
         });
     }
 
