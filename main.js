@@ -26,6 +26,7 @@ class App {
         this.controls = new Controls(this.camera, this.renderer.domElement, this.character);
         
         this._setupFileUpload();
+        this._setupRotationControls();
 
         window.addEventListener('resize', this._onWindowResize.bind(this));
         this.renderer.setAnimationLoop(this._animate.bind(this));
@@ -58,8 +59,21 @@ class App {
                 const url = URL.createObjectURL(file);
                 this.character.loadModel(url, () => {
                     URL.revokeObjectURL(url); // Clean up
+                    document.getElementById('rotation-controls').style.display = 'block';
                 });
             }
+        });
+    }
+
+    _setupRotationControls() {
+        const slider = document.getElementById('rotation-slider');
+        const valueSpan = document.getElementById('rotation-value');
+
+        slider.addEventListener('input', (event) => {
+            const degrees = parseInt(event.target.value);
+            valueSpan.textContent = degrees;
+            const radians = THREE.MathUtils.degToRad(degrees);
+            this.character.setInitialRotation(radians);
         });
     }
 
@@ -81,4 +95,3 @@ class App {
 }
 
 new App();
-

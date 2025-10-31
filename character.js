@@ -7,7 +7,7 @@ export class Character {
         this.gltfLoader = new GLTFLoader();
 
         this.model = new THREE.Object3D();
-        this.model.position.y = 0;
+        this.model.position.y = 0; // The character container is what moves
         this.scene.add(this.model);
 
         this.mixer = null;
@@ -17,36 +17,54 @@ export class Character {
         this.rotationSpeed = 4;
         this.currentAction = null;
 
+        // A wrapper for the loaded model to handle initial rotation
+        this.modelWrapper = new THREE.Object3D();
+        this.model.add(this.modelWrapper);
+
         this._createPlaceholder();
     }
     
     _createPlaceholder() {
         // A placeholder so we can see something before a model is loaded
-        const geometry = new THREE.CapsuleGeometry(0.5, 1, 4, 8);
+        const geometry = new THREE.CapsuleGeometry(0.5, 1, 4, 8); // Total height is 2
         const material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
         const capsule = new THREE.Mesh(geometry, material);
-        capsule.position.y = 0.5;
+        capsule.position.y = 1; // Sit on the ground
         capsule.castShadow = true;
-        this.model.add(capsule);
+        this.modelWrapper.add(capsule);
     }
 
     loadModel(url, onLoaded) {
         this.gltfLoader.load(url, (gltf) => {
             // Remove previous model
-            if (this.model.children.length > 0) {
-                this.scene.remove(this.model);
+            if (this.modelWrapper.children.length > 0) {
+                this.modelWrapper.remove(this.modelWrapper.children[0]);
             }
             
-            this.model = gltf.scene;
-            this.model.traverse((child) => {
+            const loadedModel = gltf.scene;
+
+            // --- Position model on the ground ---
+            const box = new THREE.Box3().setFromObject(loadedModel);
+            const verticalOffset = -box.min.y;
+            loadedModel.position.y = verticalOffset;
+            // --- End positioning ---
+
+            loadedModel.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                 }
             });
-            this.scene.add(this.model);
+            this.modelWrapper.add(loadedModel);
+            // Reset wrapper rotation
+            this.modelWrapper.rotation.y = 0;
+            if (document.getElementById('rotation-slider')) {
+                document.getElementById('rotation-slider').value = 0;
+                document.getElementById('rotation-value').textContent = 0;
+            }
 
-            this.mixer = new THREE.AnimationMixer(this.model);
+
+            this.mixer = new THREE.AnimationMixer(loadedModel);
             this.animations = {};
             gltf.animations.forEach((clip) => {
                 const action = this.mixer.clipAction(clip);
@@ -56,6 +74,10 @@ export class Character {
             console.log('Loaded animations:', Object.keys(this.animations));
             if (onLoaded) onLoaded();
         });
+    }
+
+    setInitialRotation(radians) {
+        this.modelWrapper.rotation.y = radians;
     }
 
     update(deltaTime, moveState) {
@@ -87,6 +109,7 @@ export class Character {
             // Rotate model to face move direction
             const targetQuaternion = new THREE.Quaternion();
             const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+            // Combine with initial wrapper rotation
             targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetAngle);
             this.model.quaternion.slerp(targetQuaternion, this.rotationSpeed * deltaTime);
 
