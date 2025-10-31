@@ -78,6 +78,8 @@ export class Character {
 
             console.log('Loaded animations:', Object.keys(this.animations));
             if (onLoaded) onLoaded();
+        }, (error) => {
+            console.error('An error happened during GLB parsing:', error);
         });
     }
 
@@ -125,6 +127,8 @@ export class Character {
 
             console.log('Loaded animations:', Object.keys(this.animations));
             if (onLoaded) onLoaded();
+        }, undefined, (error) => {
+            console.error('An error happened during GLB loading:', error);
         });
     }
 

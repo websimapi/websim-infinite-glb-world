@@ -59,9 +59,12 @@ class App {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    this.character.parseGLB(e.target.result, () => {
+                    let glbData = e.target.result;
+                    this.character.parseGLB(glbData, () => {
                         document.getElementById('rotation-controls').style.display = 'block';
                         document.getElementById('scale-controls').style.display = 'block';
+                        // Release the reference to the ArrayBuffer to allow garbage collection
+                        glbData = null;
                     });
                 };
                 reader.readAsArrayBuffer(file);
