@@ -146,9 +146,12 @@ export class Character {
         const isMoving = moveDirection.lengthSq() > 0;
         
         if (this.mixer) {
-            const walkAction = this.animations['walk'];
+            const walkAction = this.animations['walk'] || this.animations['walk_baked'];
             if (isMoving && walkAction) {
                 if (this.currentAction !== walkAction) {
+                    if (this.currentAction) {
+                        this.currentAction.fadeOut(0.2);
+                    }
                     walkAction.reset().fadeIn(0.2).play();
                     this.currentAction = walkAction;
                 }
