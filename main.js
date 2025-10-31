@@ -57,12 +57,14 @@ class App {
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
-                const url = URL.createObjectURL(file);
-                this.character.loadModel(url, () => {
-                    URL.revokeObjectURL(url); // Clean up
-                    document.getElementById('rotation-controls').style.display = 'block';
-                    document.getElementById('scale-controls').style.display = 'block';
-                });
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.character.parseGLB(e.target.result, () => {
+                        document.getElementById('rotation-controls').style.display = 'block';
+                        document.getElementById('scale-controls').style.display = 'block';
+                    });
+                };
+                reader.readAsArrayBuffer(file);
             }
         });
     }

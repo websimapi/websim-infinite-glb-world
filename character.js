@@ -34,6 +34,53 @@ export class Character {
         this.modelWrapper.add(capsule);
     }
 
+    parseGLB(glbData, onLoaded) {
+        this.gltfLoader.parse(glbData, '', (gltf) => {
+            // Remove previous model
+            if (this.modelWrapper.children.length > 0) {
+                this.modelWrapper.remove(this.modelWrapper.children[0]);
+            }
+            
+            const loadedModel = gltf.scene;
+
+            // --- Position model on the ground ---
+            const box = new THREE.Box3().setFromObject(loadedModel);
+            const verticalOffset = -box.min.y;
+            loadedModel.position.y = verticalOffset;
+            // --- End positioning ---
+
+            loadedModel.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            this.modelWrapper.add(loadedModel);
+            // Reset wrapper rotation
+            this.modelWrapper.rotation.y = 0;
+            this.modelWrapper.scale.set(1, 1, 1);
+            if (document.getElementById('rotation-slider')) {
+                document.getElementById('rotation-slider').value = 0;
+                document.getElementById('rotation-value').textContent = 0;
+            }
+            if (document.getElementById('scale-slider')) {
+                document.getElementById('scale-slider').value = 1;
+                document.getElementById('scale-value').textContent = '1.0';
+            }
+
+
+            this.mixer = new THREE.AnimationMixer(loadedModel);
+            this.animations = {};
+            gltf.animations.forEach((clip) => {
+                const action = this.mixer.clipAction(clip);
+                this.animations[clip.name.toLowerCase()] = action;
+            });
+
+            console.log('Loaded animations:', Object.keys(this.animations));
+            if (onLoaded) onLoaded();
+        });
+    }
+
     loadModel(url, onLoaded) {
         this.gltfLoader.load(url, (gltf) => {
             // Remove previous model
